@@ -161,7 +161,7 @@ client.on("messageCreate", async message => {
           embed.setImage(url[0].replace(/\s/g, ""))
         }
       }
-      const tenorGifs = quote.embeds?.filter(e => e.data.provider.name === "Tenor" && e.data.thumbnail.url.match(tenorMatch)) ?? []
+      const tenorGifs = quote.embeds?.filter(e => e.data.provider?.name === "Tenor" && e.data.thumbnail.url.match(tenorMatch)) ?? []
       if (!image && tenorGifs.length) {
         const m = tenorGifs[0].data.thumbnail.url.match(tenorMatch)
         embed.setImage(`https://c.tenor.com/${m[1]}C/tenor.gif`)
