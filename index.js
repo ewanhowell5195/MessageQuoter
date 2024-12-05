@@ -44,6 +44,7 @@ client.on("messageCreate", async message => {
     }
 
     for (const match of matches) {
+      if (match[1] !== message.guildId) continue
       const channel = await client.channels.fetch(match[2])
       if (!channel) continue
 
