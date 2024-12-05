@@ -25,6 +25,8 @@ function makeEmbed(args) {
   return embed
 }
 
+const tenorMatch = /^https:\/\/media\.tenor\.com\/([a-zA-Z0-9_-]+)e\/[a-zA-Z0-9_-]+\.png$/
+
 client.on("messageCreate", async message => {
   if (message.guild) {
     const matches = Array.from(message.content.matchAll(/discord\.com\/channels\/(\d{17,19})\/(\d{17,19})(?:\/(\d{17,19}))?(?:[^\d\/](?<!\>)|$)/g))
@@ -158,6 +160,11 @@ client.on("messageCreate", async message => {
           embed.setImage(url[0].replace(/\s/g, ""))
         }
       }
+      const tenorGifs = quote.embeds?.filter(e => e.data.provider.name === "Tenor" && e.data.thumbnail.url.match(tenorMatch)) ?? []
+      if (!image && tenorGifs.length) {
+        const m = tenorGifs[0].data.thumbnail.url.match(tenorMatch)
+        embed.setImage(`https://c.tenor.com/${m[1]}C/tenor.gif`)
+      }
 
       if (quote.stickers?.size) {
         embed.addFields({
@@ -166,22 +173,22 @@ client.on("messageCreate", async message => {
         })
       }
 
-      const embedsLength = quote.embeds?.filter(e => !["image", "video"].includes(e.data.type)).length ?? 0
+      const messageEmbeds = quote.embeds?.filter(e => !(["image", "video"].includes(e.data.type) || e.data.provider.name === "Tenor" && e.data.thumbnail.url.match(tenorMatch))) ?? []
 
-      if (embedsLength !== 0 && quote.attachments?.size > 1) {
+      const additional = []
+      if (messageEmbeds.length) {
+        additional.push(`\`[${messageEmbeds.length} Embed${messageEmbeds.length === 1 ? "" : "s"}]\``)
+      }
+      if (quote.attachments?.size > 1) {
+        additional.push(`\`[${quote.attachments.size - 1} Attachment${quote.attachments.size === 2 ? "" : "s"}]\``)
+      }
+      if (tenorGifs.length > 1) {
+        additional.push(`\`[${tenorGifs.length - 1} Tenor Gif${tenorGifs.length === 2 ? "" : "s"}]\``)
+      }
+      if (additional.length) {
         embed.addFields({
           name: "Additional content",
-          value: `\`[${embedsLength} Embed${embedsLength === 1 ? "" : "s"}]\`\n\`[${quote.attachments.size-1} Attachment${quote.attachments.size-1 === 1 ? "" : "s"}]\``
-        })
-      } else if (embedsLength !== 0) {
-        embed.addFields({
-          name: "Additional content",
-          value: `\`[${embedsLength} Embed${embedsLength === 1 ? "" : "s"}]\``
-        })
-      } else if (quote.attachments?.size > 1) {
-        embed.addFields({
-          name: "Additional content",
-          value: `\`[${quote.attachments.size-1} Attachment${quote.attachments.size-1 === 1 ? "" : "s"}]\``
+          value: additional.join("\n")
         })
       }
 
@@ -193,15 +200,10 @@ client.on("messageCreate", async message => {
       done.add(id)
       if (embeds.length > 9) break
 
-      if (embedsLength) {
-        for (const embed of quote.embeds) {
-          if (["image", "video"].includes(embed.data.type)) continue
-
-          if (countEmbedChars(embed)) break
-
-          embeds.push(embed)
-          if (embeds.length > 9) break
-        }
+      for (const embed of messageEmbeds) {
+        if (countEmbedChars(embed)) break
+        embeds.push(embed)
+        if (embeds.length > 9) break
       }
     }
 
