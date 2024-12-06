@@ -174,7 +174,7 @@ client.on("messageCreate", async message => {
         })
       }
 
-      const messageEmbeds = quote.embeds?.filter(e => !(["image", "video"].includes(e.data.type) || e.data.provider.name === "Tenor" && e.data.thumbnail.url.match(tenorMatch))) ?? []
+      const messageEmbeds = quote.embeds?.filter(e => !(["image", "video"].includes(e.data.type) || e.data.provider?.name === "Tenor" && e.data.thumbnail.url.match(tenorMatch))) ?? []
 
       const additional = []
       if (messageEmbeds.length) {
